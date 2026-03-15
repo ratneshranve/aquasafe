@@ -4,235 +4,294 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Sensor Simulator - AquaSafe</title>
+  <title>AquaSafe Simulator</title>
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap');
 
     :root {
-      --primary: #00d2ff;
-      --secondary: #3a7bd5;
-      --bg-color: #0f172a;
-      --card-bg: rgba(30, 41, 59, 0.75);
-      --text-main: #f8fafc;
-      --text-muted: #94a3b8;
-      --accent: #2dd4bf;
-      --error: #fb7185;
-      --success: #34d399;
+      --bg-color: #0b1121;
+      --card-bg: rgba(15, 23, 42, 0.7);
+      --glass-border: rgba(255, 255, 255, 0.1);
+      --pure-water: #0ea5e9;
+      --dirty-water: #84cc16; /* Olive/greenish brown */
+      --danger: #ef4444;
+      --success: #10b981;
+      --text: #f8fafc;
+      /* Dynamic properties updated by JS */
+      --water-color: #0ea5e9;
+      --glow-color: #0ea5e9;
     }
 
     * {
       box-sizing: border-box;
       margin: 0;
       padding: 0;
+      font-family: 'Outfit', sans-serif;
     }
 
     body {
-      font-family: 'Outfit', sans-serif;
-      background: linear-gradient(135deg, #020617 0%, #0f172a 100%);
-      display: flex;
-      justify-content: center;
-      align-items: center;
+      background: var(--bg-color);
+      color: var(--text);
       min-height: 100vh;
-      color: var(--text-main);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 2rem 1rem;
+      background-image:
+        radial-gradient(circle at 15% 50%, rgba(14, 165, 233, 0.08) 0%, transparent 50%),
+        radial-gradient(circle at 85% 30%, rgba(132, 204, 22, 0.05) 0%, transparent 50%);
       overflow-x: hidden;
-      padding: 20px;
-      position: relative;
     }
 
-    /* Ambient background glow and animated elements */
-    body::before,
-    body::after {
-      content: '';
-      position: absolute;
-      width: 45vw;
-      height: 45vw;
-      border-radius: 50%;
-      filter: blur(120px);
-      opacity: 0.15;
-      z-index: 0;
-      animation: pulseGlow 8s ease-in-out infinite alternate;
-      pointer-events: none;
-    }
-
-    body::before {
-      top: -10vw;
-      left: -10vw;
-      background: var(--primary);
-    }
-
-    body::after {
-      bottom: -10vw;
-      right: -10vw;
-      background: var(--secondary);
-      animation-delay: -4s;
-    }
-
-    @keyframes pulseGlow {
-      0% {
-        transform: scale(1) translate(0, 0);
-        opacity: 0.15;
-      }
-
-      50% {
-        opacity: 0.25;
-      }
-
-      100% {
-        transform: scale(1.1) translate(40px, 40px);
-        opacity: 0.15;
-      }
-    }
-
-    .card {
-      background: var(--card-bg);
-      backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
-      padding: 2.5rem;
-      border-radius: 24px;
-      border: 1px solid rgba(255, 255, 255, 0.08);
-      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5), inset 0 0 0 1px rgba(255, 255, 255, 0.05);
+    .container {
+      max-width: 900px;
       width: 100%;
-      max-width: 440px;
-      z-index: 1;
+      background: var(--card-bg);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid var(--glass-border);
+      border-radius: 24px;
+      padding: 2rem;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
       animation: slideUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-      transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.4s ease;
       opacity: 0;
       transform: translateY(30px);
     }
 
-    .card:hover {
-      transform: translateY(-8px);
-      box-shadow: 0 40px 60px -15px rgba(0, 0, 0, 0.6), inset 0 0 0 1px rgba(255, 255, 255, 0.08);
-    }
-
     @keyframes slideUp {
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
+      to { opacity: 1; transform: translateY(0); }
     }
 
-    h2 {
-      font-size: 1.8rem;
-      font-weight: 600;
-      background: linear-gradient(to right, #00d2ff, #3a5cf5);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      margin-bottom: 30px;
+    h1 {
       text-align: center;
+      color: var(--text);
+      margin-bottom: 2rem;
+      font-size: 2.2rem;
+      font-weight: 700;
       letter-spacing: -0.5px;
+      text-shadow: 0 0 15px rgba(14, 165, 233, 0.5);
     }
 
-    .input-group {
-      margin-bottom: 20px;
-      position: relative;
-    }
-
-    .row {
+    /* Simulation Area */
+    .simulation {
       display: flex;
-      gap: 15px;
+      align-items: center;
+      justify-content: space-between;
+      position: relative;
+      margin-top: 3rem;
+      margin-bottom: 4rem;
+      padding: 0 1rem;
     }
 
-    .row .input-group {
-      flex: 1;
-      margin-bottom: 10px;
+    .icon {
+      width: 80px;
+      height: 80px;
+      background: rgba(15, 23, 42, 0.9);
+      border: 2px solid var(--water-color);
+      border-radius: 50%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 2;
+      box-shadow: 0 0 20px var(--glow-color);
+      transition: all 0.5s ease;
+      flex-shrink: 0;
     }
 
-    label {
+    .icon svg {
+      width: 40px;
+      height: 40px;
+      fill: var(--water-color);
+      transition: all 0.5s ease;
+    }
+
+    /* Pipeline */
+    .pipeline-container {
+      flex-grow: 1;
+      height: 30px;
+      background: rgba(0, 0, 0, 0.2);
+      border-top: 2px solid var(--glass-border);
+      border-bottom: 2px solid var(--glass-border);
+      position: relative;
+      overflow: hidden;
+      margin: 0 -5px;
+      z-index: 1;
+      box-shadow: inset 0 3px 6px rgba(0, 0, 0, 0.4), inset 0 -2px 4px rgba(255, 255, 255, 0.08);
+    }
+
+    .water-flow {
+      position: absolute;
+      top: 0;
+      left: 0;
+      bottom: 0;
+      width: 100%;
+      background: 
+        radial-gradient(circle at 10px 15px, rgba(255,255,255,0.6) 2px, transparent 3px),
+        radial-gradient(circle at 30px 10px, rgba(255,255,255,0.4) 1px, transparent 2px),
+        radial-gradient(circle at 45px 20px, rgba(255,255,255,0.5) 2px, transparent 3px),
+        radial-gradient(circle at 75px 15px, rgba(255,255,255,0.3) 1.5px, transparent 2px),
+        linear-gradient(90deg, transparent, rgba(255,255,255,0.1) 20%, transparent 40%, rgba(0,0,0,0.1) 60%, transparent),
+        linear-gradient(to bottom, rgba(255,255,255,0.3) 0%, transparent 20%, transparent 80%, rgba(0,0,0,0.3) 100%);
+      background-color: var(--water-color);
+      background-size: 50px 30px, 60px 30px, 80px 30px, 90px 30px, 150px 100%, 100% 100%;
+      animation: flowRight 1.5s linear infinite;
+      transition: background-color 0.5s ease, clip-path 1.5s ease-in-out;
+      clip-path: inset(0 100% 0 0); /* Empty initially */
+    }
+
+    @keyframes flowRight {
+      0% { background-position: 0 0, 0 0, 0 0, 0 0, 0 0, 0 0; }
+      100% { background-position: 50px 0, 60px 0, 80px 0, 90px 0, 150px 0, 0 0; }
+    }
+
+    /* Digital Meter */
+    .meter-device {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      background: rgba(10, 15, 30, 0.95);
+      border: 2px solid var(--glow-color);
+      box-shadow: 0 0 30px rgba(0, 0, 0, 0.6), inset 0 0 15px rgba(0, 0, 0, 0.8);
+      border-radius: 16px;
+      padding: 1.5rem;
+      z-index: 3;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      width: 220px;
+      transition: all 0.5s ease;
+    }
+    
+    .meter-device::before {
+      content: 'SENSOR METER';
+      position: absolute;
+      top: -10px; left: 50%; transform: translateX(-50%);
+      background: var(--bg-color);
+      padding: 0 10px; font-size: 0.7rem; font-weight: 600;
+      color: var(--text); letter-spacing: 1px;
+    }
+
+    .meter-display-row {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 8px;
-      font-size: 0.9rem;
-      font-weight: 500;
-      color: var(--text-muted);
-      transition: color 0.3s ease;
+      background: rgba(0, 0, 0, 0.5);
+      padding: 0.6rem 0.8rem;
+      border-radius: 8px;
+      border: 1px solid rgba(255, 255, 255, 0.05);
     }
 
-    .hint {
-      font-size: 0.75rem;
-      opacity: 0.6;
-      font-weight: 400;
+    .meter-label {
+      font-size: 0.85rem;
+      color: #94a3b8;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
     }
 
-    input {
-      width: 100%;
-      padding: 14px 16px;
-      background: rgba(15, 23, 42, 0.6);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      border-radius: 12px;
-      color: var(--text-main);
-      font-size: 1rem;
-      font-family: 'Outfit', sans-serif;
-      transition: all 0.3s ease;
-      outline: none;
-      box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2);
+    .meter-val {
+      font-family: 'Courier New', Courier, monospace;
+      font-size: 1.3rem;
+      color: var(--water-color);
+      font-weight: 700;
+      text-shadow: 0 0 8px var(--glow-color);
+      transition: color 0.5s ease, text-shadow 0.5s ease;
     }
 
-    input:focus {
-      border-color: rgba(0, 210, 255, 0.5);
-      background: rgba(15, 23, 42, 0.8);
-      box-shadow: 0 0 0 4px rgba(0, 210, 255, 0.15), inset 0 2px 4px rgba(0, 0, 0, 0.2);
-      transform: translateY(-2px);
+    /* Hidden Configuration Settings (Values bound to UI) */
+    .settings {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      margin-bottom: 2rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid var(--glass-border);
+      justify-content: center;
     }
 
-    input:hover {
-      border-color: rgba(255, 255, 255, 0.25);
+    .input-grp {
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+      flex: 1;
+      min-width: 200px;
     }
 
-    /* Small label animation on input focus */
-    .input-group:focus-within label {
-      color: var(--primary);
-      transform: translateY(-1px);
-    }
-
-    button {
-      width: 100%;
-      margin-top: 15px;
-      padding: 16px;
-      background: linear-gradient(135deg, #00d2ff 0%, #3a7bd5 100%);
+    .input-grp label { font-size: 0.85rem; color: #cbd5e1; }
+    .input-grp input {
+      background: rgba(0, 0, 0, 0.3);
+      border: 1px solid var(--glass-border);
       color: white;
+      padding: 0.75rem 1rem;
+      border-radius: 8px;
+      outline: none;
+      transition: 0.3s;
+    }
+    .input-grp input:focus {
+      border-color: var(--pure-water);
+      box-shadow: 0 0 10px rgba(14, 165, 233, 0.2);
+    }
+    
+    /* Hidden inputs for simulation values, keep them around for logic */
+    #tds, #turbidity, #ph {
+        display: none;
+    }
+
+    /* Buttons */
+    .buttons-container {
+      display: flex;
+      gap: 1.5rem;
+      justify-content: center;
+      margin-top: 1rem;
+    }
+
+    .btn {
+      flex: 1;
+      max-width: 300px;
+      padding: 1.2rem;
       border: none;
       border-radius: 12px;
       font-size: 1.1rem;
       font-weight: 600;
       cursor: pointer;
-      font-family: 'Outfit', sans-serif;
-      transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      transition: all 0.3s ease;
+      color: white;
       position: relative;
       overflow: hidden;
-      box-shadow: 0 10px 20px -10px rgba(58, 123, 213, 0.6);
+    }
+
+    .btn::before {
+      content: '';
+      position: absolute;
+      top: 0; left: -100%; width: 100%; height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+      transition: all 0.5s;
       z-index: 1;
     }
 
-    button::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: -100%;
-      width: 100%;
-      height: 100%;
-      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
-      transition: left 0.5s ease;
-      z-index: -1;
-    }
+    .btn:hover::before { left: 100%; }
+    .btn span { position: relative; z-index: 2; }
 
-    button:hover {
-      transform: translateY(-3px) scale(1.02);
-      box-shadow: 0 15px 25px -10px rgba(58, 123, 213, 0.8);
+    .btn-pure {
+      background: linear-gradient(135deg, #0284c7, #0ea5e9);
+      box-shadow: 0 10px 20px -5px rgba(14, 165, 233, 0.5);
     }
+    .btn-pure:hover { transform: translateY(-3px); box-shadow: 0 15px 25px -5px rgba(14, 165, 233, 0.7); }
 
-    button:hover::before {
-      left: 100%;
+    .btn-dirty {
+      background: linear-gradient(135deg, #65a30d, #a3e635);
+      box-shadow: 0 10px 20px -5px rgba(132, 204, 22, 0.5);
     }
+    .btn-dirty:hover { transform: translateY(-3px); box-shadow: 0 15px 25px -5px rgba(132, 204, 22, 0.7); }
 
-    button:active {
-      transform: translateY(1px) scale(0.98);
-      box-shadow: 0 5px 10px -5px rgba(58, 123, 213, 0.6);
-    }
-
+    /* Status Message */
     .status {
-      margin-top: 20px;
+      margin-top: 1.5rem;
       text-align: center;
       font-size: 0.95rem;
       font-weight: 500;
@@ -240,88 +299,216 @@
       border-radius: 12px;
       display: none;
       animation: fadeInStatus 0.4s ease;
-      background: rgba(52, 211, 153, 0.1);
+      background: rgba(16, 185, 129, 0.1);
       color: var(--success);
-      border: 1px solid rgba(52, 211, 153, 0.2);
+      border: 1px solid rgba(16, 185, 129, 0.2);
     }
-
-    .status:not(:empty) {
-      display: block;
-    }
-
+    
+    .status:not(:empty) { display: block; }
     .status.error {
-      background: rgba(251, 113, 133, 0.1);
-      color: var(--error);
-      border: 1px solid rgba(251, 113, 133, 0.2);
+      background: rgba(239, 68, 68, 0.1);
+      color: var(--danger);
+      border: 1px solid rgba(239, 68, 68, 0.2);
     }
 
     @keyframes fadeInStatus {
-      from {
-        opacity: 0;
-        transform: translateY(10px) scale(0.95);
-      }
-
-      to {
-        opacity: 1;
-        transform: translateY(0) scale(1);
-      }
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
     }
 
-    /* Responsive adjustments */
-    @media (max-width: 480px) {
-      .card {
-        padding: 2rem;
+    @media (max-width: 768px) {
+      .simulation { flex-direction: column; gap: 2rem; margin-top: 1.5rem; }
+      .pipeline-container {
+        width: 30px; height: 120px;
+        border: none;
+        border-left: 2px solid var(--glass-border);
+        border-right: 2px solid var(--glass-border);
+        margin: -5px 0;
+        box-shadow: inset 3px 0 6px rgba(0, 0, 0, 0.4), inset -2px 0 4px rgba(255, 255, 255, 0.08);
       }
-
-      .row {
-        flex-direction: column;
-        gap: 0px;
+      .water-flow {
+        width: 100%; height: 100%;
+        background: 
+          radial-gradient(circle at 15px 10px, rgba(255,255,255,0.6) 2px, transparent 3px),
+          radial-gradient(circle at 10px 30px, rgba(255,255,255,0.4) 1px, transparent 2px),
+          radial-gradient(circle at 20px 45px, rgba(255,255,255,0.5) 2px, transparent 3px),
+          radial-gradient(circle at 15px 75px, rgba(255,255,255,0.3) 1.5px, transparent 2px),
+          linear-gradient(180deg, transparent, rgba(255,255,255,0.1) 20%, transparent 40%, rgba(0,0,0,0.1) 60%, transparent),
+          linear-gradient(to right, rgba(255,255,255,0.3) 0%, transparent 20%, transparent 80%, rgba(0,0,0,0.3) 100%);
+        background-color: var(--water-color);
+        background-size: 30px 50px, 30px 60px, 30px 80px, 30px 90px, 100% 150px, 100% 100%;
+        animation: flowDown 1.5s linear infinite;
+        clip-path: inset(0 0 100% 0); /* Empty initially for vertical */
       }
-
-      .row .input-group {
-        margin-bottom: 20px;
+      @keyframes flowDown {
+        0% { background-position: 0 0, 0 0, 0 0, 0 0, 0 0, 0 0; }
+        100% { background-position: 0 50px, 0 60px, 0 80px, 0 90px, 0 150px, 0 0; }
       }
+      .meter-device { width: 90%; max-width: 300px; position: static; transform: none; margin: -10px auto; }
+      .buttons-container { flex-direction: column; }
+      .btn { max-width: 100%; }
     }
   </style>
 </head>
 
 <body>
-  <div class="card">
-    <h2>AquaSafe Simulator</h2>
+  <div class="container">
+    <h1>AquaSafe Simulator</h1>
 
-    <div class="input-group">
-      <label>Backend URL</label>
-      <input type="text" id="url" value="http://192.168.1.101:5000/api/sensor-data" autocomplete="off" />
-    </div>
-
-    <div class="input-group">
-      <label>Meter ID</label>
-      <input type="text" id="meterId" value="METER-101" autocomplete="off" />
-    </div>
-
-    <div class="row">
-      <div class="input-group">
-        <label>TDS <span class="hint">(Safe &lt;= 500)</span></label>
-        <input type="number" id="tds" value="400" />
+    <!-- Hidden configuration for logic compatibility -->
+    <div class="settings">
+      <div class="input-grp">
+        <label>Backend URL</label>
+        <input type="text" id="url" value="http://10.237.180.217:5000/api/sensor-data" autocomplete="off" />
       </div>
-
-      <div class="input-group">
-        <label>Turbidity <span class="hint">(Safe &lt;= 5)</span></label>
-        <input type="number" id="turbidity" value="3" />
-      </div>
-
-      <div class="input-group">
-        <label>pH <span class="hint">(Safe 6.5 - 8.5)</span></label>
-        <input type="number" id="ph" value="7.0" />
+      <div class="input-grp">
+        <label>Meter ID</label>
+        <input type="text" id="meterId" value="METER-101" autocomplete="off" />
       </div>
     </div>
+    
+    <!-- Hidden inputs to stay fully compatible with existing sendData logic -->
+    <input type="number" id="tds" value="400" />
+    <input type="number" id="turbidity" value="3" />
+    <input type="number" id="ph" value="7.0" />
 
-    <button onclick="sendData()">Send Data</button>
+    <!-- Visual Simulation -->
+    <div class="simulation">
+      <!-- Water Tank -->
+      <div class="icon" title="Water Source">
+        <svg viewBox="0 0 24 24">
+          <path d="M7,22v-2c0-0.55,0.45-1,1-1h8c0.55,0,1,0.45,1,1v2C17,22.55,16.55,23,16,23H8C7.45,23,7,22.55,7,22z M17,2H7C5.9,2,5,2.9,5,4v13c0,1.1,0.9,2,2,2h10c1.1,0,2-0.9,2-2V4C19,2.9,18.1,2,17,2z M17,17H7V4h10V17z M15,10c0,1.66-1.34,3-3,3s-3-1.34-3-3s3-4,3-4S15,8.34,15,10z"/>
+        </svg>
+      </div>
+
+      <!-- Pipeline -->
+      <div class="pipeline-container">
+        <div class="water-flow"></div>
+      </div>
+
+      <!-- Meter Device -->
+      <div class="meter-device" id="app">
+        <div class="meter-display-row">
+          <span class="meter-label">TDS</span>
+          <span class="meter-val" id="dispTds">400</span>
+        </div>
+        <div class="meter-display-row">
+          <span class="meter-label">Turbidity</span>
+          <span class="meter-val" id="dispTurbidity">3.0</span>
+        </div>
+        <div class="meter-display-row">
+          <span class="meter-label">pH</span>
+          <span class="meter-val" id="dispPh">7.0</span>
+        </div>
+      </div>
+
+      <!-- House / Destination -->
+      <div class="icon" title="House Distribution">
+        <svg viewBox="0 0 24 24">
+          <path d="M10,20v-6h4v6h5v-8h3L12,3L2,12h3v8H10z"/>
+        </svg>
+      </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="buttons-container">
+      <button class="btn btn-pure" onclick="simulatePureWater()">
+        <svg fill="white" width="24" height="24" viewBox="0 0 24 24"><path d="M12,2c0,0-8,6.8-8,12.8c0,4.4,3.6,8,8,8s8-3.6,8-8C20,8.8,12,2,12,2z M12,20c-2.4,0-4.5-1.6-5.1-3.9 c0.6,0.3,1.3,0.5,2,0.5c3.3,0,6-2.7,6-6c0-0.6-0.1-1.2-0.3-1.8C16.6,10.5,18,12.5,18,14.8C18,17.7,15.3,20,12,20z"/></svg>
+        <span>Send Pure Water</span>
+      </button>
+
+      <button class="btn btn-dirty" onclick="simulateContaminatedWater()">
+        <svg fill="white" width="24" height="24" viewBox="0 0 24 24"><path d="M12 2C12 2 4 8.8 4 14.8C4 19.2 7.6 22.8 12 22.8C16.4 22.8 20 19.2 20 14.8C20 8.8 12 2 12 2zM13 18H11V16H13V18zm0-4H11V9H13V14z"/></svg>
+        <span>Send Contaminated Water</span>
+      </button>
+    </div>
 
     <div class="status" id="statusMsg"></div>
   </div>
 
   <script>
+    // UI Theme state update
+    function updateTheme(type) {
+      const root = document.documentElement;
+      if (type === 'pure') {
+        const pureBlue = getComputedStyle(root).getPropertyValue('--pure-water').trim();
+        root.style.setProperty('--water-color', pureBlue);
+        root.style.setProperty('--glow-color', pureBlue);
+        document.getElementById('statusMsg').className = 'status';
+        document.getElementById('statusMsg').innerText = 'Simulating pure water flow...';
+      } else {
+        const dirtyGreen = getComputedStyle(root).getPropertyValue('--dirty-water').trim();
+        root.style.setProperty('--water-color', dirtyGreen);
+        // Add a red warning glow to the meter
+        root.style.setProperty('--glow-color', 'rgba(239, 68, 68, 0.8)'); 
+        document.getElementById('statusMsg').className = 'status error';
+        document.getElementById('statusMsg').innerText = 'Simulating contaminated water flow...';
+      }
+    }
+
+    // Number randomization between min and max
+    function getRandom(min, max, decimals = 1) {
+      const num = Math.random() * (max - min) + min;
+      return parseFloat(num.toFixed(decimals));
+    }
+
+    // Handlers
+    function simulatePureWater() {
+      // Safe values: TDS: 300-400, Turbidity: 1-3, pH: 7-7.5
+      const tdsVal = getRandom(300, 400, 0);
+      const turVal = getRandom(1, 3, 1);
+      const phVal = getRandom(7, 7.5, 1);
+      
+      triggerSimulation(tdsVal, turVal, phVal, 'pure');
+    }
+
+    function simulateContaminatedWater() {
+      // Unsafe values: TDS: 700-900, Turbidity: 8-15, pH: 4-5 or 9-10
+      const tdsVal = getRandom(700, 900, 0);
+      const turVal = getRandom(8, 15, 1);
+      // Randomly pick low or high pH
+      const phVal = Math.random() > 0.5 ? getRandom(4, 5, 1) : getRandom(9, 10, 1);
+      
+      triggerSimulation(tdsVal, turVal, phVal, 'dirty');
+    }
+
+    function triggerSimulation(tdsVal, turVal, phVal, type) {
+      // Update visual theme
+      updateTheme(type);
+      
+      const waterFlow = document.querySelector('.water-flow');
+      const isMobile = window.innerWidth <= 768;
+      
+      // Reset flow to empty
+      waterFlow.style.transition = 'none';
+      if (isMobile) {
+        waterFlow.style.clipPath = 'inset(0 0 100% 0)';
+      } else {
+        waterFlow.style.clipPath = 'inset(0 100% 0 0)';
+      }
+      
+      // Force reflow
+      void waterFlow.offsetWidth;
+      
+      // Start flow fill animation
+      waterFlow.style.transition = 'clip-path 1.5s ease-in-out, background 0.5s ease';
+      waterFlow.style.clipPath = 'inset(0 0 0 0)';
+      
+      // Update display meter
+      document.getElementById('dispTds').innerText = tdsVal;
+      document.getElementById('dispTurbidity').innerText = turVal;
+      document.getElementById('dispPh').innerText = phVal;
+      
+      // Update hidden inputs for existing logic
+      document.getElementById('tds').value = tdsVal;
+      document.getElementById('turbidity').value = turVal;
+      document.getElementById('ph').value = phVal;
+
+      // Trigger existing sendData() function
+      sendData();
+    }
+
+    // The untouched existing logic
     async function sendData() {
       const url = document.getElementById('url').value;
       const meterId = document.getElementById('meterId').value;
