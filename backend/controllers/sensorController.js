@@ -49,6 +49,7 @@ exports.receiveSensorData = async (req, res) => {
       });
 
       await newAlert.save();
+      await newAlert.populate('user');
 
       // Emit to Admin
       io.to('Admin').emit('newAlert', newAlert);
